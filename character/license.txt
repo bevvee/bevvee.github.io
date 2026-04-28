@@ -1,0 +1,11 @@
+Model Information:
+* title:	Levi - 3D Stylized Character
+* source:	https://sketchfab.com/3d-models/levi-3d-stylized-character-2a19347e0698413abef02dc63ed82947
+* author:	HuseyinBacalan (https://sketchfab.com/huseyinb)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Levi - 3D Stylized Character" (https://sketchfab.com/3d-models/levi-3d-stylized-character-2a19347e0698413abef02dc63ed82947) by HuseyinBacalan (https://sketchfab.com/huseyinb) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
