@@ -1,1 +1,912 @@
-Hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mohammed Amine El Aazzouzi · Software Engineer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 0; }
+  #ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+
+  #name-top {
+    position: absolute;
+    top: 24px; left: 28px;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #444;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  #hero-text {
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  #hero-text .eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #00ffc8;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #hero-text .eyebrow::before {
+    content: '';
+    display: block;
+    width: 30px; height: 1px;
+    background: #00ffc8;
+  }
+  #hero-text h1 {
+    font-size: clamp(32px, 5vw, 72px);
+    font-weight: 900;
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+  }
+  #hero-text h1 .accent { color: #00ffc8; }
+  #hero-text .role {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #666;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #hero-text .company {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #444;
+    letter-spacing: 1px;
+  }
+  #hero-text .company span { color: #00ffc8; }
+
+  #scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: #333;
+    text-transform: uppercase;
+    transition: opacity 0.5s;
+    animation: bob 2.5s infinite ease-in-out;
+  }
+  @keyframes bob {
+    0%,100%{ transform: translateX(-50%) translateY(0); }
+    50%{ transform: translateX(-50%) translateY(8px); }
+  }
+  #scroll-hint svg { display: block; margin: 6px auto 0; opacity: 0.3; }
+
+  #section-label {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,255,200,0.07);
+    border: 1px solid rgba(0,255,200,0.25);
+    color: #00ffc8;
+    padding: 6px 22px;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    white-space: nowrap;
+  }
+
+  #info-panel {
+    position: absolute;
+    right: 4%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 310px;
+    background: rgba(4,4,18,0.88);
+    border: 1px solid rgba(0,255,200,0.15);
+    border-radius: 18px;
+    padding: 26px 24px;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+    pointer-events: auto;
+    backdrop-filter: blur(16px);
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  #info-panel::-webkit-scrollbar { width: 3px; }
+  #info-panel::-webkit-scrollbar-track { background: transparent; }
+  #info-panel::-webkit-scrollbar-thumb { background: #00ffc822; border-radius: 2px; }
+
+  #info-panel h2 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #00ffc8;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  #info-panel .sub {
+    font-size: 10px;
+    color: #444;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .skill-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 9px 0;
+  }
+  .skill-name { font-size: 11px; color: #aaa; width: 72px; flex-shrink: 0; }
+  .skill-bar-bg { flex: 1; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .skill-bar { height: 3px; border-radius: 2px; background: linear-gradient(90deg, #00ffc8, #0099ff); }
+  .skill-pct { font-size: 10px; color: #00ffc8; width: 30px; text-align: right; flex-shrink: 0; }
+
+  .proj-card {
+    background: rgba(0,255,200,0.03);
+    border: 1px solid rgba(0,255,200,0.1);
+    border-radius: 12px;
+    padding: 13px 14px;
+    margin: 9px 0;
+    transition: border-color 0.3s;
+  }
+  .proj-card:hover { border-color: rgba(0,255,200,0.3); }
+  .proj-card h3 { font-size: 12px; color: #eee; margin-bottom: 5px; font-weight: 600; }
+  .proj-card p { font-size: 11px; color: #666; line-height: 1.6; }
+  .tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .chip {
+    font-size: 9px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    background: rgba(0,255,200,0.08);
+    color: #00ffc8;
+    border: 1px solid rgba(0,255,200,0.18);
+    letter-spacing: 0.5px;
+  }
+
+  .exp-item {
+    border-left: 2px solid #00ffc8;
+    padding-left: 14px;
+    margin: 14px 0;
+  }
+  .exp-item h3 { font-size: 12px; color: #fff; font-weight: 700; }
+  .exp-item .date { font-size: 10px; color: #00ffc8; margin: 3px 0; letter-spacing: 1px; }
+  .exp-item p { font-size: 11px; color: #666; line-height: 1.5; }
+
+  .cert-card {
+    background: rgba(255,170,0,0.04);
+    border: 1px solid rgba(255,170,0,0.15);
+    border-radius: 12px;
+    padding: 13px 14px;
+    margin: 9px 0;
+  }
+  .cert-card h3 { font-size: 12px; color: #ffd060; font-weight: 600; margin-bottom: 5px; }
+  .cert-card p { font-size: 11px; color: #666; line-height: 1.6; }
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 12px;
+    color: #888;
+  }
+  .contact-row .icon { font-size: 14px; width: 20px; text-align: center; }
+  .contact-row a { color: #00ffc8; text-decoration: none; font-size: 11px; }
+  .contact-row a:hover { text-decoration: underline; }
+
+  #scroll-progress {
+    position: fixed;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 20;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 0.3s, transform 0.3s, height 0.3s;
+    border: 1px solid transparent;
+  }
+  .dot.active {
+    background: #00ffc8;
+    transform: scale(1.5);
+    border-color: rgba(0,255,200,0.3);
+    box-shadow: 0 0 8px rgba(0,255,200,0.5);
+  }
+
+  #section-nav {
+    position: absolute;
+    bottom: 32px;
+    right: 4%;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: auto;
+  }
+  .nav-btn {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    background: rgba(5,5,20,0.7);
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-btn:hover { border-color: #00ffc8; color: #00ffc8; }
+  .nav-btn.active-btn { border-color: #00ffc8; color: #00ffc8; background: rgba(0,255,200,0.05); }
+
+  #loading-screen {
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
+    background: #0a0a0f;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 1s ease;
+  }
+  #loading-screen .load-name {
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: #333;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+  }
+  #loading-bar-bg {
+    width: 200px; height: 1px;
+    background: rgba(255,255,255,0.05);
+  }
+  #loading-bar {
+    height: 1px;
+    background: linear-gradient(90deg, #00ffc8, #0099ff);
+    width: 0%;
+    transition: width 0.1s;
+  }
+  #loading-screen .load-pct {
+    margin-top: 14px;
+    font-size: 10px;
+    color: #00ffc8;
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="load-name">Loading Portfolio</div>
+  <div id="loading-bar-bg"><div id="loading-bar"></div></div>
+  <div class="load-pct" id="load-pct">0%</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<div id="ui">
+  <div id="name-top">M.A. El Aazzouzi · 2025</div>
+  <div id="section-label">Exploring the Room</div>
+
+  <div id="hero-text">
+    <div class="eyebrow">Software Engineer · 21 · Morocco</div>
+    <h1>Mohammed<br>Amine<br><span class="accent">El Aazzouzi</span></h1>
+    <div class="role">Mobile &amp; Web Developer</div>
+    <div class="company">@ <span>Sima Code</span> · Since Sep 2024</div>
+  </div>
+
+  <div id="info-panel"></div>
+
+  <div id="scroll-hint">
+    Scroll to explore
+    <svg width="14" height="20" viewBox="0 0 14 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="12" height="18" rx="6" stroke="white" stroke-width="1.5"/>
+      <circle cx="7" cy="6" r="1.5" fill="white"/>
+    </svg>
+  </div>
+
+  <div id="section-nav">
+    <div class="nav-btn" onclick="goTo(0)">Intro</div>
+    <div class="nav-btn" onclick="goTo(1)">Projects</div>
+    <div class="nav-btn" onclick="goTo(2)">Skills</div>
+    <div class="nav-btn" onclick="goTo(3)">Certs</div>
+  </div>
+</div>
+
+<div id="scroll-progress">
+  <div class="dot active" onclick="goTo(0)" title="Home"></div>
+  <div class="dot" onclick="goTo(1)" title="Projects"></div>
+  <div class="dot" onclick="goTo(2)" title="Skills"></div>
+  <div class="dot" onclick="goTo(3)" title="Certificates"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── Loading ────────────────────────────────────────────────────────
+let loadPct = 0;
+const loadBar = document.getElementById('loading-bar');
+const loadPctEl = document.getElementById('load-pct');
+const loadScreen = document.getElementById('loading-screen');
+const loadInterval = setInterval(()=>{
+  loadPct += Math.random()*15;
+  if(loadPct>=100){ loadPct=100; clearInterval(loadInterval); setTimeout(()=>{ loadScreen.style.opacity='0'; setTimeout(()=>loadScreen.remove(),1000); },300); }
+  loadBar.style.width=loadPct+'%';
+  loadPctEl.textContent=Math.floor(loadPct)+'%';
+},120);
+
+// ── Renderer ────────────────────────────────────────────────────────
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x050510, 0.065);
+scene.background = new THREE.Color(0x050510);
+
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 60);
+camera.position.set(0, 2.2, 7.5);
+const lookTarget = new THREE.Vector3(0, 1.1, 0);
+camera.lookAt(lookTarget);
+
+// ── Helpers ─────────────────────────────────────────────────────────
+const mat = (color, metalness=0, roughness=0.8, emissive=null, emissiveIntensity=0) => {
+  const m = new THREE.MeshStandardMaterial({color, metalness, roughness});
+  if(emissive){ m.emissive = new THREE.Color(emissive); m.emissiveIntensity = emissiveIntensity; }
+  return m;
+};
+const BOX = (w,h,d,m) => new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m);
+const CYL = (rt,rb,h,seg,m) => new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg), m);
+const SPH = (r,seg,m) => new THREE.Mesh(new THREE.SphereGeometry(r,seg,seg), m);
+
+function mkBox(w,h,d,color,mx=0,rx=0.8){ return BOX(w,h,d,mat(color,mx,rx)); }
+function mkCyl(rt,rb,h,s,color,mx=0,rx=0.7){ return CYL(rt,rb,h,s,mat(color,mx,rx)); }
+
+// ── Lighting ─────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x223366, 0.5));
+
+const pLight = new THREE.PointLight(0x00ffd5, 2.0, 14);
+pLight.position.set(-2, 5, 1); pLight.castShadow=true;
+pLight.shadow.mapSize.set(512,512);
+scene.add(pLight);
+
+const warmL = new THREE.PointLight(0xff8833, 1.0, 10);
+warmL.position.set(4, 3, -2); scene.add(warmL);
+
+const rimL = new THREE.DirectionalLight(0x5533ff, 0.3);
+rimL.position.set(-6, 6, -6); scene.add(rimL);
+
+const screenGlowL = new THREE.PointLight(0x0044cc, 1.2, 4);
+screenGlowL.position.set(1.5, 2.2, -3.5); scene.add(screenGlowL);
+
+const lampL = new THREE.PointLight(0xffddaa, 0.9, 5);
+lampL.position.set(-3, 2.2, -3.8); scene.add(lampL);
+
+// ── Floor ─────────────────────────────────────────────────────────
+const floor = mkBox(22,0.1,22, 0x0d0d1e, 0, 0.95);
+floor.position.y=-0.05; floor.receiveShadow=true; scene.add(floor);
+for(let x=-5;x<=5;x++) for(let z=-5;z<=5;z++){
+  const t = mkBox(0.97,0.008,0.97, (x+z)%2===0?0x121228:0x0e0e22, 0, 1);
+  t.position.set(x,0.001,z); scene.add(t);
+}
+
+// ── Ceiling ────────────────────────────────────────────────────────
+const ceiling = mkBox(22,0.1,22,0x080814,0,1);
+ceiling.position.y=5.95; scene.add(ceiling);
+
+// ── Walls ──────────────────────────────────────────────────────────
+const backWall = mkBox(14,7,0.15,0x0c0c1e,0,1);
+backWall.position.set(0,3.5,-5.5); scene.add(backWall);
+const leftWall = mkBox(0.15,7,14,0x0a0a1c,0,1);
+leftWall.position.set(-6,3.5,0); scene.add(leftWall);
+const rightWall = mkBox(0.15,7,14,0x0a0a1c,0,1);
+rightWall.position.set(6,3.5,0); scene.add(rightWall);
+
+// Wall accent lines (back)
+for(let i=0;i<6;i++){
+  const vl = mkBox(0.015,5,0.01,0x00ffc8,0,0);
+  vl.material.emissive=new THREE.Color(0x00ffc8); vl.material.emissiveIntensity=0.15;
+  vl.position.set(-5+i*2,2.5,-5.43); scene.add(vl);
+}
+
+// Ceiling LED strip
+for(let x=-5.5;x<=5.5;x+=0.25){
+  const led = SPH(0.018,4,mat(0x00ffc8,0,0,0x00ffc8,1.8));
+  led.position.set(x,5.88,-4.8); scene.add(led);
+}
+// Side led strip (left)
+for(let z=-5;z<=-2;z+=0.25){
+  const led = SPH(0.016,4,mat(0x7733ff,0,0,0x7733ff,1.5));
+  led.position.set(-5.93,0.08,z); scene.add(led);
+}
+
+// ── Rug ───────────────────────────────────────────────────────────
+const rug = mkBox(3.2,0.025,2.2,0x2a0033,0,0.95);
+rug.position.set(-0.2,0.008,0.2); scene.add(rug);
+const rugIn = mkBox(2.8,0.026,1.8,0x3d0055,0,0.9);
+rugIn.position.set(-0.2,0.009,0.2); scene.add(rugIn);
+// Rug pattern lines
+for(let i=-1;i<=1;i++){
+  const rl = mkBox(2.7,0.027,0.015,0x00ffc8,0,0);
+  rl.material.emissive=new THREE.Color(0x00ffc8); rl.material.emissiveIntensity=0.08;
+  rl.position.set(-0.2,0.01,0.2+i*0.6); scene.add(rl);
+}
+
+// ── Desk ──────────────────────────────────────────────────────────
+const deskG = new THREE.Group();
+const dTop = mkBox(2.6,0.09,1.05,0x261508,0,0.5); dTop.position.y=0.94; dTop.castShadow=true; deskG.add(dTop);
+const dEdge = mkBox(2.6,0.02,0.015,0x00ffc8,0,0);
+dEdge.material.emissive=new THREE.Color(0x00ffc8); dEdge.material.emissiveIntensity=0.5;
+dEdge.position.set(0,0.945,-0.52); deskG.add(dEdge);
+const dEdgeF = mkBox(2.6,0.02,0.015,0x00ffc8,0,0);
+dEdgeF.material.emissive=new THREE.Color(0x00ffc8); dEdgeF.material.emissiveIntensity=0.15;
+dEdgeF.position.set(0,0.945,0.52); deskG.add(dEdgeF);
+// Legs
+[[1.2,-0.48],[1.2,0.42],[-1.2,-0.48],[-1.2,0.42]].forEach(([x,z])=>{
+  const lg = mkBox(0.065,0.92,0.065,0x1a0c04,0,0.8); lg.position.set(x,0.46,z); lg.castShadow=true; deskG.add(lg);
+});
+// Cable management box
+const cable = mkBox(0.5,0.08,0.12,0x111111,0.5,0.5); cable.position.set(-0.7,0.98,0.4); deskG.add(cable);
+deskG.position.set(1.5,0,-4.4); scene.add(deskG);
+
+// ── Monitor ───────────────────────────────────────────────────────
+const monG = new THREE.Group();
+// Bezel
+const mBezel = mkBox(1.9,1.12,0.07,0x0e0e12,0.7,0.2); mBezel.position.y=1.05; mBezel.castShadow=true; monG.add(mBezel);
+// Screen
+const mScr = mkBox(1.76,0.98,0.01,0x000a18,0,0.05); mScr.position.set(0,1.05,0.04); monG.add(mScr);
+// Glow layer
+const mGlow = mkBox(1.7,0.92,0.008,0x001133,0,0); mGlow.material.emissive=new THREE.Color(0x0033aa); mGlow.material.emissiveIntensity=0.5; mGlow.position.set(0,1.05,0.042); monG.add(mGlow);
+// Code lines on screen (visual)
+for(let i=0;i<8;i++){
+  const w=0.3+Math.random()*0.9;
+  const cl=mkBox(w,0.022,0.003,[0x00ff99,0x4488ff,0xff6644,0xffcc00][i%4],0,0);
+  cl.material.emissive=new THREE.Color([0x00ff99,0x4488ff,0xff6644,0xffcc00][i%4]); cl.material.emissiveIntensity=0.7;
+  cl.position.set(-0.6+w/2+Math.random()*0.2, 1.3-i*0.07, 0.046); monG.add(cl);
+}
+// Stand
+const mStand=mkBox(0.07,0.28,0.07,0x1e1e1e,0.7,0.3); mStand.position.y=0.46; monG.add(mStand);
+const mBase=mkBox(0.55,0.04,0.32,0x191919,0.7,0.3); mBase.position.y=0.3; monG.add(mBase);
+// Brand dot
+const mDot=SPH(0.025,6,mat(0x00ffc8,0,0,0x00ffc8,1));
+mDot.position.set(0,0.49,0.04); monG.add(mDot);
+monG.position.set(1.5,0.92,-4.4+0.32); scene.add(monG);
+
+// ── Keyboard & Mouse ──────────────────────────────────────────────
+const kbG = new THREE.Group();
+const kb = mkBox(1.05,0.032,0.35,0x141420,0.3,0.6); kb.position.y=0; kbG.add(kb);
+// Key rows
+for(let r=0;r<3;r++) for(let k=0;k<12;k++){
+  const key=mkBox(0.068,0.012,0.068,k%4===0?0x002244:0x0a0a18,0,0.5);
+  key.position.set(-0.44+k*0.08, 0.022, -0.1+r*0.1); kbG.add(key);
+}
+kbG.position.set(1.5,0.958,-4.15);
+scene.add(kbG);
+
+const mouse = mkBox(0.1,0.035,0.14,0x131320,0.4,0.5); mouse.position.set(2.2,0.957,-4.15); scene.add(mouse);
+
+// ── Chair ─────────────────────────────────────────────────────────
+const chairG = new THREE.Group();
+const cSeat = mkBox(0.72,0.07,0.68,0x0d0d1e,0.05,0.7); cSeat.position.y=0.57; cSeat.castShadow=true; chairG.add(cSeat);
+const cBack = mkBox(0.72,0.75,0.07,0x0d0d1e,0.05,0.7); cBack.position.set(0,0.97,-0.31); cBack.castShadow=true; chairG.add(cBack);
+// Backrest logo
+const cLogo = mkBox(0.3,0.04,0.01,0x00ffc8,0,0); cLogo.material.emissive=new THREE.Color(0x00ffc8); cLogo.material.emissiveIntensity=0.4; cLogo.position.set(0,1.05,-0.27); chairG.add(cLogo);
+const cPole = mkCyl(0.025,0.025,0.52,8,0x2a2a2a,0.7,0.3); cPole.position.y=0.28; chairG.add(cPole);
+const cBase = mkCyl(0.38,0.38,0.032,5,0x1e1e1e,0.7,0.3); cBase.position.y=0.016; chairG.add(cBase);
+[-0.38,0.38].forEach(x=>{
+  const arm=mkBox(0.065,0.045,0.52,0x0a0a15,0,0.7); arm.position.set(x,0.78,0.06); chairG.add(arm);
+  const armv=mkBox(0.04,0.2,0.04,0x1e1e1e,0.5,0.4); armv.position.set(x,0.64,-0.1); chairG.add(armv);
+});
+chairG.position.set(1.5,0,-3.0); scene.add(chairG);
+
+// ── Bookshelf ─────────────────────────────────────────────────────
+const shelfG = new THREE.Group();
+const sBody = mkBox(2.3,3.0,0.22,0x130902,0,0.75); sBody.position.y=1.5; shelfG.add(sBody);
+// Panels
+[0.28,0.93,1.58,2.22].forEach(y=>{ const p=mkBox(2.2,0.045,0.36,0x1a0c04,0,0.7); p.position.set(0,y,0.1); shelfG.add(p); });
+// Books
+const bookC=[0xff1a3d,0x0066ff,0x00cc44,0xff9900,0xaa00ee,0xff5500,0x00ccff,0xff0077,0x33ff99];
+let bxPos=[-0.9,-0.75,-0.58,-0.42,-0.26,-0.1,0.07,0.25,0.42];
+bookC.forEach((c,i)=>{
+  const bh=0.38+Math.random()*0.12, bw=0.1+Math.random()*0.05;
+  const bk=mkBox(bw,bh,0.29,c,0,0.7);
+  bk.position.set(bxPos[i],0.66+Math.floor(i/4)*0.65,0.06); shelfG.add(bk);
+  // Book spine stripe
+  const sp=mkBox(bw,0.01,0.01,0xffffff,0,0); sp.material.emissive=new THREE.Color(0xffffff); sp.material.emissiveIntensity=0.3;
+  sp.position.set(bxPos[i],0.66+Math.floor(i/4)*0.65+bh/2-0.02,0.14); shelfG.add(sp);
+});
+// Trophy
+const tG=new THREE.Group();
+const tCup=mkCyl(0.085,0.055,0.16,14,0xffaa00,0.9,0.15); tCup.position.y=0.1; tG.add(tCup);
+const tTop=mkCyl(0.095,0.085,0.04,14,0xffcc00,0.9,0.1); tTop.position.y=0.2; tG.add(tTop);
+const tStar=SPH(0.04,6,mat(0xffff00,0.5,0.1,0xffff00,1)); tStar.position.y=0.24; tG.add(tStar);
+const tBase2=mkCyl(0.06,0.08,0.055,8,0xaa7700,0.5,0.3); tBase2.position.y=0.02; tG.add(tBase2);
+tG.position.set(0.78,1.38,0); shelfG.add(tG);
+// Small plant on shelf
+const spPot=mkCyl(0.07,0.09,0.12,10,0xcc4400,0,0.8); spPot.position.set(-0.72,1.38,0.06); shelfG.add(spPot);
+const spLeaf=SPH(0.09,6,mat(0x22aa33,0,0.9)); spLeaf.scale.y=1.3; spLeaf.position.set(-0.72,1.55,0.06); shelfG.add(spLeaf);
+shelfG.position.set(-4.2,0,-4.0); scene.add(shelfG);
+
+// ── Certificates on right wall ────────────────────────────────────
+const certColors=[0xffaa00,0x00ccff];
+[[2.5,-2.2],[2.5,-3.4]].forEach(([y,z],i)=>{
+  const cInner=mkBox(0.85,0.65,0.04,0x0a0818,0,0.8);
+  cInner.position.set(5.88,y,z); scene.add(cInner);
+  // Gold frame
+  [[0.9,0.01,0.7],[0.9,0.7,0.01],[0.01,0.7,0.7],[0.01,0.7,0.7]].forEach(([fw,fh,fd],fi)=>{
+    if(fi>1) return;
+    const frame=mkBox(0.92,0.01,0.02,certColors[i],0.8,0.15);
+    frame.material.emissive=new THREE.Color(certColors[i]); frame.material.emissiveIntensity=0.2;
+    frame.position.set(5.88,y+(fi===0?0.35:-0.35),z); scene.add(frame);
+  });
+  // Side frames
+  [-0.46,0.46].forEach(dz=>{
+    const sf=mkBox(0.01,0.68,0.71,certColors[i],0.8,0.15);
+    sf.material.emissive=new THREE.Color(certColors[i]); sf.material.emissiveIntensity=0.2;
+    sf.position.set(5.88,y,z+dz); scene.add(sf);
+  });
+  // Lines inside cert
+  for(let l=0;l<3;l++){
+    const cl=mkBox(0.4,0.018,0.01,certColors[i],0,0);
+    cl.material.emissive=new THREE.Color(certColors[i]); cl.material.emissiveIntensity=0.4;
+    cl.position.set(5.87,y+0.15-l*0.15,z+0.025); scene.add(cl);
+  }
+});
+
+// ── Poster on back wall ───────────────────────────────────────────
+const postG=new THREE.Group();
+const pBg=mkBox(1.3,1.7,0.04,0x080818,0,0.9);
+pBg.position.y=0; postG.add(pBg);
+// Neon circle on poster
+const pGlow=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.025,8,32),mat(0x00ffc8,0,0,0x00ffc8,1));
+pGlow.position.z=0.03; postG.add(pGlow);
+const pInner=new THREE.Mesh(new THREE.TorusGeometry(0.32,0.015,8,32),mat(0x7733ff,0,0,0x7733ff,1));
+pInner.position.z=0.03; postG.add(pInner);
+for(let i=0;i<5;i++){
+  const pLine=mkBox(0.7,0.018,0.01,i===0?0x00ffc8:0x445566,0,0);
+  pLine.material.emissive=new THREE.Color(i===0?0x00ffc8:0x223344); pLine.material.emissiveIntensity=0.4;
+  pLine.position.set(0,-0.35-i*0.1,0.03); postG.add(pLine);
+}
+const pFrame2=mkBox(1.36,1.76,0.03,0x00ffc8,0.5,0.2);
+pFrame2.material.emissive=new THREE.Color(0x00ffc8); pFrame2.material.emissiveIntensity=0.05;
+postG.add(pFrame2);
+postG.position.set(-2,2.7,-5.42); scene.add(postG);
+
+// ── Lamp ──────────────────────────────────────────────────────────
+const lampG=new THREE.Group();
+const lBase2=mkCyl(0.12,0.14,0.06,14,0x222222,0.8,0.2); lBase2.position.y=0.03; lampG.add(lBase2);
+const lPole2=mkCyl(0.022,0.022,0.85,8,0x2a2a2a,0.8,0.2); lPole2.position.y=0.45; lampG.add(lPole2);
+const lNeck=new THREE.Mesh(new THREE.ConeGeometry(0.17,0.22,12,1,true),mat(0xffeecc,0,0.7));
+lNeck.material.side=THREE.DoubleSide; lNeck.position.y=0.97; lampG.add(lNeck);
+const lBulb2=SPH(0.045,8,mat(0xffffff,0,0,0xffffaa,2.5)); lBulb2.position.y=0.88; lampG.add(lBulb2);
+lampG.position.set(-3.2,0,-4.4); scene.add(lampG);
+
+// ── Plant ─────────────────────────────────────────────────────────
+const plantG=new THREE.Group();
+const plantPot=mkCyl(0.19,0.23,0.32,14,0xdd5500,0,0.8); plantPot.position.y=0.16; plantG.add(plantPot);
+const plantSoil=mkCyl(0.18,0.18,0.035,12,0x2e1f0a); plantSoil.position.y=0.33; plantG.add(plantSoil);
+for(let i=0;i<8;i++){
+  const angle=i/8*Math.PI*2;
+  const leaf=SPH(0.13+Math.random()*0.08,7,mat(0x1a9933,0,0.9));
+  leaf.scale.set(0.9,1.4,0.9);
+  leaf.position.set(Math.cos(angle)*0.13,0.5+Math.random()*0.22,Math.sin(angle)*0.13);
+  plantG.add(leaf);
+}
+const plantStem=mkCyl(0.025,0.025,0.22,6,0x1a6622); plantStem.position.y=0.44; plantG.add(plantStem);
+plantG.position.set(-4.5,0,-4.6); scene.add(plantG);
+
+// ── Mini fridge ───────────────────────────────────────────────────
+const fridgeG=new THREE.Group();
+const fBody=mkBox(0.5,0.7,0.45,0x111122,0.3,0.5); fBody.position.y=0.35; fridgeG.add(fBody);
+const fDoor=mkBox(0.48,0.68,0.02,0x0a0a1e,0.2,0.4); fDoor.position.set(0,0.35,0.235); fridgeG.add(fDoor);
+const fHandle=mkBox(0.28,0.025,0.03,0x00ffc8,0.8,0.2); fHandle.material.emissive=new THREE.Color(0x00ffc8); fHandle.material.emissiveIntensity=0.3; fHandle.position.set(0,0.35,0.25); fridgeG.add(fHandle);
+const fLight=mkBox(0.44,0.035,0.01,0x001133,0,0); fLight.material.emissive=new THREE.Color(0x003399); fLight.material.emissiveIntensity=0.5; fLight.position.set(0,0.3,0.236); fridgeG.add(fLight);
+fridgeG.position.set(-3.5,0,-2.5); scene.add(fridgeG);
+
+// ── Speakers ──────────────────────────────────────────────────────
+[[-0.55,0],[0.55,0]].forEach(([ox])=>{
+  const spkG=new THREE.Group();
+  const spkBody=mkBox(0.16,0.28,0.15,0x0e0e16,0.2,0.5); spkBody.position.y=0.14; spkG.add(spkBody);
+  const spkGrill=mkBox(0.12,0.18,0.01,0x1a1a2a,0,0.9); spkGrill.position.set(0,0.14,0.08); spkG.add(spkGrill);
+  const spkCone=mkCyl(0.04,0.055,0.015,12,0x222233,0.2,0.8); spkCone.rotation.x=Math.PI/2; spkCone.position.set(0,0.14,0.08); spkG.add(spkCone);
+  spkG.position.set(1.5+ox,0.955,-4.4+0.28); scene.add(spkG);
+});
+
+// ── Character ─────────────────────────────────────────────────────
+const charG = new THREE.Group();
+const skinC=0xc8a478, pantsC=0x252538, hoodieC=0x131323, shoeC=0xf0f0f0, soleC=0x222222;
+
+// Sneakers
+[-0.14,0.14].forEach((x,si)=>{
+  const shoe=mkBox(0.2,0.1,0.3,shoeC,0,0.4); shoe.position.set(x,0.1,0.05); charG.add(shoe);
+  const sole=mkBox(0.22,0.04,0.32,soleC,0,0.6); sole.position.set(x,0.04,0.05); charG.add(sole);
+  const sole2=mkBox(0.21,0.025,0.31,0x111111,0,0.7); sole2.position.set(x,0.07,0.05); charG.add(sole2);
+  const swoosh=mkBox(0.11,0.025,0.01,0xff2200,0.2,0.4); swoosh.position.set(x+(si===0?0.05:-0.05),0.1,0.2); charG.add(swoosh);
+  // Laces
+  for(let l=0;l<3;l++){
+    const lace=mkBox(0.18,0.01,0.015,0x888888); lace.position.set(x,0.14,0.02+l*0.06); charG.add(lace);
+  }
+});
+
+// Cargo pants
+[-0.14,0.14].forEach((x,li)=>{
+  const upper=mkBox(0.2,0.38,0.2,pantsC,0,0.8); upper.position.set(x,0.71,0); charG.add(upper);
+  const lower=mkBox(0.18,0.34,0.18,0x1e1e30,0,0.8); lower.position.set(x,0.34,0); charG.add(lower);
+  const pocket=mkBox(0.12,0.12,0.02,0x1a1a2e); pocket.position.set(x+(li===0?0.1:-0.1),0.68,0.11); charG.add(pocket);
+  const pzip=mkBox(0.08,0.01,0.02,0x444466); pzip.position.set(x+(li===0?0.1:-0.1),0.73,0.12); charG.add(pzip);
+});
+// Belt
+const belt=mkBox(0.44,0.04,0.22,0x111111,0,0.6); belt.position.y=0.9; charG.add(belt);
+const buckle=mkBox(0.06,0.04,0.02,0xccaa00,0.8,0.2); buckle.material.emissive=new THREE.Color(0xccaa00); buckle.material.emissiveIntensity=0.2; buckle.position.set(0,0.9,0.115); charG.add(buckle);
+
+// Hoodie torso
+const torso=mkBox(0.5,0.55,0.3,hoodieC,0.05,0.75); torso.position.y=1.13; torso.castShadow=true; charG.add(torso);
+// Hoodie front pocket
+const hPocket=mkBox(0.26,0.12,0.02,0x0c0c1e); hPocket.position.set(0,0.97,0.16); charG.add(hPocket);
+// Hoodie drawstrings
+[-0.06,0.06].forEach(x=>{ const ds=mkBox(0.018,0.14,0.018,0x0a0a14); ds.position.set(x,1.28,0.16); charG.add(ds); });
+// Hoodie zipper
+const zip=mkBox(0.012,0.3,0.015,0x222233); zip.position.set(0,1.1,0.16); charG.add(zip);
+// Sleeve cuffs
+[-0.28,0.28].forEach(x=>{ const cuff=mkBox(0.14,0.04,0.15,0x0a0a1e); cuff.position.set(x,0.73,0); charG.add(cuff); });
+
+// Arms
+[-0.33,0.33].forEach((x,ai)=>{
+  const upper=mkBox(0.15,0.36,0.15,hoodieC,0,0.75); upper.position.set(x,1.02,0); upper.rotation.z=ai===0?0.14:-0.14; upper.castShadow=true; charG.add(upper);
+  const lower=mkBox(0.13,0.32,0.13,skinC,0,0.7); lower.position.set(x+(ai===0?-0.05:0.05),0.7,0); charG.add(lower);
+  const hand=SPH(0.075,8,mat(skinC,0,0.75)); hand.scale.set(1,0.82,0.85); hand.position.set(x+(ai===0?-0.07:0.07),0.55,0); charG.add(hand);
+});
+
+// Neck
+const neck=mkCyl(0.065,0.065,0.12,10,skinC,0,0.75); neck.position.y=1.42; charG.add(neck);
+
+// Head
+const head=BOX(0.34,0.36,0.30,mat(skinC,0,0.75)); head.position.y=1.64; head.castShadow=true; charG.add(head);
+// Jaw shadow
+const jaw=mkBox(0.3,0.06,0.28,0xb8926a,0,0.8); jaw.position.y=1.47; charG.add(jaw);
+// Eyes
+[[-0.08,1.63],[0.08,1.63]].forEach(([x,y])=>{
+  const white=mkBox(0.07,0.04,0.01,0xffffff); white.position.set(x,y,0.152); charG.add(white);
+  const iris=mkBox(0.038,0.038,0.012,0x331100); iris.position.set(x,y,0.155); charG.add(iris);
+  const pupil=mkBox(0.02,0.02,0.013,0x000000); pupil.position.set(x,y,0.157); charG.add(pupil);
+  const shine=mkBox(0.008,0.008,0.014,0xffffff); shine.position.set(x+0.01,y+0.01,0.158); charG.add(shine);
+});
+// Brows
+[[-0.08,1.685],[0.08,1.685]].forEach(([x,y])=>{
+  const br=mkBox(0.085,0.018,0.01,0x1a1005); br.position.set(x,y,0.152); charG.add(br);
+});
+// Nose
+const nose=mkBox(0.025,0.04,0.025,0xb8906a,0,0.8); nose.position.set(0,1.58,0.158); charG.add(nose);
+// Mouth
+const mouth=mkBox(0.07,0.018,0.01,0x9a5040); mouth.position.set(0,1.54,0.152); charG.add(mouth);
+// Smile curves
+[[-0.038,1.535],[0.038,1.535]].forEach(([x,y])=>{
+  const sc=mkBox(0.015,0.025,0.01,0x9a5040); sc.position.set(x,y,0.152); charG.add(sc);
+});
+// Ears
+[-0.18,0.18].forEach(x=>{ const ear=SPH(0.045,7,mat(skinC,0,0.75)); ear.position.set(x,1.62,0.01); charG.add(ear); });
+
+// Hair - textured box approach
+const hair=mkBox(0.38,0.15,0.32,0x111111,0,0.9); hair.position.set(0,1.82,0.01); charG.add(hair);
+const hair2=mkBox(0.34,0.28,0.31,0x0d0d0d,0,0.9); hair2.position.set(0,1.77,-0.02); charG.add(hair2);
+// Hair fade sides
+[-0.19,0.19].forEach(x=>{ const hf=mkBox(0.025,0.22,0.28,0x151515,0,0.9); hf.position.set(x,1.67,0); charG.add(hf); });
+// Hairline
+const hline=mkBox(0.34,0.06,0.01,0x0f0f0f,0,0.9); hline.position.set(0,1.72,0.155); charG.add(hline);
+
+// Headphones
+const hpArc=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.028,8,24,Math.PI),mat(0x0a0a0a,0.6,0.3));
+hpArc.rotation.z=-Math.PI/2; hpArc.position.set(0,1.8,0.01); charG.add(hpArc);
+// Headphone band
+const hpBand=mkBox(0.015,0.12,0.38,0x0a0a0a,0.6,0.3); hpBand.position.set(0,1.82,0.01); charG.add(hpBand);
+[-0.205,0.205].forEach(x=>{
+  const cup=mkCyl(0.065,0.065,0.045,12,0x0a0a0a,0.7,0.2);
+  cup.rotation.z=Math.PI/2; cup.position.set(x,1.61,0.01); charG.add(cup);
+  const pad=mkCyl(0.068,0.068,0.012,12,0x181818,0,0.9);
+  pad.rotation.z=Math.PI/2; pad.position.set(x+(x<0?-0.02:0.02),1.61,0.01); charG.add(pad);
+  const led2=SPH(0.018,6,mat(0x00ffc8,0,0,0x00ffc8,1.5));
+  led2.position.set(x+(x<0?-0.05:0.05),1.62,0.01); charG.add(led2);
+});
+
+charG.position.set(-0.4,0,0.7);
+scene.add(charG);
+
+// ── Camera sections ────────────────────────────────────────────────
+const sections = [
+  { cam:{x:0,y:2.4,z:7.8}, look:{x:-0.2,y:1.2,z:0},   label:'', nav:0 },
+  { cam:{x:1.5,y:1.6,z:-1.2}, look:{x:1.5,y:1.5,z:-4.4}, label:'Projects · PC', nav:1 },
+  { cam:{x:-3.2,y:2.0,z:-1.5}, look:{x:-4.2,y:1.6,z:-4.0}, label:'Skills & Experience · Shelf', nav:2 },
+  { cam:{x:3.8,y:2.0,z:-1.0}, look:{x:5.9,y:2.3,z:-2.8}, label:'Certificates · Wall', nav:3 },
+];
+
+let current=0;
+let tCam={...sections[0].cam};
+let tLook={...sections[0].look};
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+function goTo(i){
+  current=Math.max(0,Math.min(sections.length-1,i));
+  tCam={...sections[current].cam};
+  tLook={...sections[current].look};
+  updateUI();
+}
+
+const heroText=document.getElementById('hero-text');
+const infoPanel=document.getElementById('info-panel');
+const scrollHintEl=document.getElementById('scroll-hint');
+const sectionLabel=document.getElementById('section-label');
+const sectionNav=document.getElementById('section-nav');
+
+const panels=[
+  '',
+  `<h2>Projects</h2><div class="sub">PC — Desktop</div>
+   <div class="proj-card">
+     <h3>🌐 E-Commerce Web Platform</h3>
+     <p>Full-stack web solution with real-time inventory, payment gateway integration, and admin dashboard. Built for scalability from ground up.</p>
+     <div class="tag-row"><span class="chip">React</span><span class="chip">Node.js</span><span class="chip">MongoDB</span><span class="chip">Stripe</span></div>
+   </div>
+   <div class="proj-card">
+     <h3>📱 Smart Delivery App</h3>
+     <p>Cross-platform mobile app for food & package delivery. Live GPS tracking, in-app payments, push notifications, driver dashboard.</p>
+     <div class="tag-row"><span class="chip">Flutter</span><span class="chip">Firebase</span><span class="chip">Google Maps</span></div>
+   </div>
+   <div class="proj-card">
+     <h3>🏗️ Company CRM — Sima Code</h3>
+     <p>Internal CRM system for managing clients, projects & workflows. Analytics dashboard with KPI tracking and automated reports.</p>
+     <div class="tag-row"><span class="chip">Next.js</span><span class="chip">PostgreSQL</span><span class="chip">TailwindCSS</span></div>
+   </div>
+   <div class="proj-card">
+     <h3>💬 Real-time Chat App</h3>
+     <p>Encrypted messaging mobile app with rooms, media sharing, read receipts, and voice notes.</p>
+     <div class="tag-row"><span class="chip">Flutter</span><span class="chip">Socket.io</span><span class="chip">Node.js</span></div>
+   </div>`,
+
+  `<h2>Skills</h2><div class="sub">Bookshelf — Knowledge</div>
+   <div class="skill-row"><span class="skill-name">Flutter</span><div class="skill-bar-bg"><div class="skill-bar" style="width:93%"></div></div><span class="skill-pct">93%</span></div>
+   <div class="skill-row"><span class="skill-name">React</span><div class="skill-bar-bg"><div class="skill-bar" style="width:89%"></div></div><span class="skill-pct">89%</span></div>
+   <div class="skill-row"><span class="skill-name">Node.js</span><div class="skill-bar-bg"><div class="skill-bar" style="width:84%"></div></div><span class="skill-pct">84%</span></div>
+   <div class="skill-row"><span class="skill-name">Next.js</span><div class="skill-bar-bg"><div class="skill-bar" style="width:81%"></div></div><span class="skill-pct">81%</span></div>
+   <div class="skill-row"><span class="skill-name">Firebase</span><div class="skill-bar-bg"><div class="skill-bar" style="width:87%"></div></div><span class="skill-pct">87%</span></div>
+   <div class="skill-row"><span class="skill-name">PostgreSQL</span><div class="skill-bar-bg"><div class="skill-bar" style="width:76%"></div></div><span class="skill-pct">76%</span></div>
+   <div class="skill-row"><span class="skill-name">Git / CI</span><div class="skill-bar-bg"><div class="skill-bar" style="width:88%"></div></div><span class="skill-pct">88%</span></div>
+   <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);">
+   <div class="exp-item">
+     <h3>Software Engineer · Sima Code</h3>
+     <div class="date">SEP 2024 – PRESENT · OUJDA, MA</div>
+     <p>Developing mobile & web solutions for real clients. Full product lifecycle from design to deployment.</p>
+   </div>
+   <div class="exp-item" style="margin-top:10px">
+     <h3>Freelance Developer</h3>
+     <div class="date">2023 – 2024</div>
+     <p>Built custom apps and websites for local businesses and international clients.</p>
+   </div>
+   </div>`,
+
+  `<h2>Certificates</h2><div class="sub">Wall — Awards</div>
+   <div class="cert-card">
+     <h3>🏆 Mobile Development</h3>
+     <p>Flutter & Dart advanced mobile development. State management (Riverpod, BLoC), animations, native integrations.</p>
+     <div class="tag-row"><span class="chip" style="color:#ffd060;border-color:rgba(255,208,96,0.3);background:rgba(255,208,96,0.05)">Flutter</span><span class="chip" style="color:#ffd060;border-color:rgba(255,208,96,0.3);background:rgba(255,208,96,0.05)">Dart</span></div>
+   </div>
+   <div class="cert-card">
+     <h3>🌐 Full-Stack Web Dev</h3>
+     <p>React, Node.js, Express, MongoDB/PostgreSQL, cloud deployment on AWS & Vercel.</p>
+     <div class="tag-row"><span class="chip" style="color:#ffd060;border-color:rgba(255,208,96,0.3);background:rgba(255,208,96,0.05)">MERN</span><span class="chip" style="color:#ffd060;border-color:rgba(255,208,96,0.3);background:rgba(255,208,96,0.05)">AWS</span></div>
+   </div>
+   <div class="cert-card">
+     <h3>📱 UI/UX Design</h3>
+     <p>Figma, prototyping, design systems and user-centered mobile/web interfaces.</p>
+     <div class="tag-row"><span class="chip" style="color:#ffd060;border-color:rgba(255,208,96,0.3);background:rgba(255,208,96,0.05)">Figma</span><span class="chip" style="color:#ffd060;border-color:rgba(255,208,96,0.3);background:rgba(255,208,96,0.05)">UX</span></div>
+   </div>
+   <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);">
+     <div class="contact-row"><span class="icon">📍</span><span>Oujda, Morocco · 21 years old</span></div>
+     <div class="contact-row"><span class="icon">💼</span><span>Open to freelance & remote</span></div>
+     <div class="contact-row"><span class="icon">✉️</span><a href="mailto:mohammed.amine@example.com">mohammed.amine@simacode.ma</a></div>
+     <div class="contact-row"><span class="icon">🐙</span><a href="#">github.com/mohammedamine</a></div>
+     <div class="contact-row"><span class="icon">💼</span><a href="#">linkedin.com/in/mohammedamine</a></div>
+   </div>`
+];
+
+function updateUI(){
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active-btn',i===current));
+  sectionLabel.textContent=sections[current].label;
+  sectionLabel.style.opacity=current===0?'0':'1';
+  heroText.style.opacity=current===0?'1':'0';
+  scrollHintEl.style.opacity=current===0?'1':'0';
+  infoPanel.innerHTML=panels[current];
+  infoPanel.style.opacity=current===0?'0':'1';
+  sectionNav.style.opacity=current===0?'0':'1';
+}
+
+// Scroll
+let scrollAcc=0, lastScroll=0;
+window.addEventListener('wheel',e=>{
+  const now=Date.now();
+  if(now-lastScroll<600){ scrollAcc+=e.deltaY; } else { scrollAcc=e.deltaY; }
+  lastScroll=now;
+  if(Math.abs(scrollAcc)>80){ goTo(current+(scrollAcc>0?1:-1)); scrollAcc=0; }
+});
+
+let touchSt=0;
+window.addEventListener('touchstart',e=>{ touchSt=e.touches[0].clientY; });
+window.addEventListener('touchend',e=>{ const d=touchSt-e.changedTouches[0].clientY; if(Math.abs(d)>45) goTo(current+(d>0?1:-1)); });
+
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key==='s'||e.key==='d') goTo(current+1);
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft'||e.key==='w'||e.key==='a') goTo(current-1);
+});
+
+// ── Animation loop ────────────────────────────────────────────────
+let time=0;
+const clock=new THREE.Clock();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta();
+  time+=dt;
+
+  // Camera lerp
+  camera.position.x=lerp(camera.position.x,tCam.x,0.035);
+  camera.position.y=lerp(camera.position.y,tCam.y,0.035);
+  camera.position.z=lerp(camera.position.z,tCam.z,0.035);
+  lookTarget.x=lerp(lookTarget.x,tLook.x,0.035);
+  lookTarget.y=lerp(lookTarget.y,tLook.y,0.035);
+  lookTarget.z=lerp(lookTarget.z,tLook.z,0.035);
+  camera.lookAt(lookTarget);
+
+  // Character idle
+  charG.position.y=Math.sin(time*1.0)*0.012;
+  charG.rotation.y=Math.sin(time*0.4)*0.06;
+
+  // Screen flicker
+  screenGlowL.intensity=0.9+Math.sin(time*4.0)*0.15;
+  
+  // Lamp warmth pulse
+  lampL.intensity=0.8+Math.sin(time*1.5)*0.05;
+
+  // Point light gentle sway
+  pLight.position.x=-2+Math.sin(time*0.6)*0.4;
+  pLight.position.z=1+Math.cos(time*0.4)*0.3;
+
+  renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+</script>
+</body>
+</html>
